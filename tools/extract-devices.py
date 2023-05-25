@@ -51,19 +51,21 @@ def parse_crypto_page(crypto_page):
 
 def parse_device_page(page):
     # Ignore the first 48 bytes of receiver data.
-    data = page[48:]
     record_len = 16
-    records = [data[i:i+record_len] for i in range(0, len(data), record_len)]
+    records = [page[i:i+record_len] for i in range(0, len(page), record_len)]
 
     # Isolate relevant device data
-    addresses = [x[1:6] for x in records if x[0] == 0x03]
+    base_address = [x[1:5] for x in records if x[0] == 0x03][0]
+    addresses = [base_address + x[1:2] for x in records if x[0] & 0xF0 == 0x20]
     names = [x[2:2+x[1]] for x in records if x[0] & 0xF0 == 0x40]
     indexes = [x[0] & 0x0F for x in records if x[0] & 0xF0 == 0x40]
 
-    print(names)
-
     ordered_names = [bytearray()] * DEVICE_COUNT
     ordered_addresses = [bytearray()] * DEVICE_COUNT
+
+    print(addresses)
+    print(names)
+    print(indexes)
 
     # Order device data.
     for i, j in enumerate(indexes):
